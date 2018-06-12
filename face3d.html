@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>three.js webgl - OBJLoader + MTLLoader</title>
+    <title>F3D Task: head3d OBJ image rendering</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <style>
@@ -12,6 +12,7 @@
             margin: 0px;
             overflow: hidden;
         }
+
         #info {
             color: #fff;
             position: absolute;
@@ -19,27 +20,225 @@
             width: 100%;
             text-align: center;
             z-index: 100;
-            display:block;
+            display: block;
         }
-        #info a, .button { color: #f00; font-weight: bold; text-decoration: underline; cursor: pointer }
+
+        #info a, .button {
+            color: #f00;
+            font-weight: bold;
+            text-decoration: underline;
+            cursor: pointer
+        }
+        @font-face {
+            font-family: 'inconsolata';
+            src: url('files/inconsolata.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        html {
+            height: 100%;
+        }
+        body {
+            background-color: #ffffff;
+            margin: 0px;
+            height: 100%;
+            color: #555;
+            font-family: 'inconsolata';
+            font-size: 15px;
+            line-height: 18px;
+            overflow: hidden;
+        }
+        h1 {
+            margin-top: 30px;
+            margin-bottom: 40px;
+            margin-left: 20px;
+            font-size: 25px;
+            font-weight: normal;
+        }
+        h2 {
+            font-size: 20px;
+            font-weight: normal;
+        }
+        a {
+            color: #2194CE;
+            text-decoration: none;
+        }
+        #panel {
+            position: fixed;
+            left: 0px;
+            width: 310px;
+            height: 100%;
+            overflow: auto;
+            background: #fafafa;
+        }
+        #panel #content {
+            padding: 0px 20px 20px 20px;
+        }
+        #panel #content .link {
+            color: #2194CE;
+            text-decoration: none;
+            cursor: pointer;
+            display: block;
+        }
+        #panel #content .selected {
+            color: #ff0000;
+        }
+        #panel #content .link:hover {
+            text-decoration: underline;
+        }
+        #viewer {
+            position: absolute;
+            border: 0px;
+            left: 310px;
+            width: calc(100% - 310px);
+            height: 100%;
+            overflow: auto;
+        }
+        #viewSrcButton {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 8px;
+            color: #fff;
+            background-color: #555;
+            opacity: 0.7;
+        }
+        #viewSrcButton:hover {
+            cursor: pointer;
+            opacity: 1;
+        }
+        .filterBlock{
+            margin: 20px;
+            position: relative;
+        }
+        .filterBlock p {
+            margin: 0;
+        }
+        #filterInput {
+            width: 100%;
+            padding: 5px;
+            font-family: inherit;
+            font-size: 15px;
+            outline: none;
+            border: 1px solid #dedede;
+        }
+        #filterInput:focus{
+            border: 1px solid #2194CE;
+        }
+        #clearFilterButton {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            margin-top: -8px;
+            width: 16px;
+            height: 16px;
+            font-size: 14px;
+            color: grey;
+            text-align: center;
+            line-height: 0;
+            padding-top: 7px;
+            opacity: .5;
+        }
+        #clearFilterButton:hover {
+            opacity: 1;
+        }
+        .filtered {
+            display: none !important;
+        }
+        #panel li b {
+            font-weight: bold;
+        }
+        /* mobile */
+        #expandButton {
+            display: none;
+            position: absolute;
+            right: 20px;
+            top: 12px;
+            width: 32px;
+            height: 32px;
+        }
+        #expandButton span {
+            height: 2px;
+            background-color: #2194CE;
+            width: 16px;
+            position: absolute;
+            left: 8px;
+            top: 10px;
+        }
+        #expandButton span:nth-child(1) {
+            top: 16px;
+        }
+        #expandButton span:nth-child(2) {
+            top: 22px;
+        }
+        @media all and ( max-width: 640px ) {
+            h1{
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+            #panel{
+                position: absolute;
+                left: 0;
+                top: 0;
+                height: 480px;
+                width: 100%;
+                right: 0;
+                z-index: 100;
+                overflow: hidden;
+                border-bottom: 1px solid #dedede;
+            }
+            #content{
+                position: absolute;
+                left: 0;
+                top: 90px;
+                right: 0;
+                bottom: 0;
+                font-size: 17px;
+                line-height: 22px;
+                overflow: auto;
+            }
+            #viewer{
+                position: absolute;
+                left: 0;
+                top: 56px;
+                width: 100%;
+                height: calc(100% - 56px);
+            }
+            #expandButton{
+                display: block;
+            }
+            #panel.collapsed{
+                height: 56px;
+            }
+        }
+
     </style>
 </head>
 
 <body>
-<div id="info">
-    <a href="http://threejs.org" target="_blank" rel="noopener">three.js</a> - OBJLoader + MTLLoader
+<div id="panel">
+    <h1><a href="http://threejs.org">F3D head3d</a></h1>
+    <div id="content"></div>
 </div>
+<iframe id="viewer" name="viewer" allowfullscreen allowvr onmousewheel=""></iframe>
 
-<script src="js/three.min.js"></script>
+<script type="text/javascript" src="js/three.min.js"></script>
 
-<script src="js/DDSLoader.js"></script>
-<script src="js/MTLLoader.js"></script>
-<script src="js/OBJLoader.js"></script>
+<script type="text/javascript" src="js/DDSLoader.js"></script>
+<script type="text/javascript" src="js/MTLLoader.js"></script>
+<script type="text/javascript" src="js/OBJLoader.js"></script>
 
-<script src="js/Detector.js"></script>
-<script src="js/stats.min.js"></script>
+<script type="text/javascript" src="js/Detector.js"></script>
+<script type="text/javascript" src="js/stats.min.js"></script>
 
-<script>
+<script type="text/javascript">
+    var panel = document.getElementById('panel');
+    var content = document.getElementById('content');
+    var viewer = document.getElementById('viewer');
+
     var container, stats;
     var camera, scene, renderer;
     var mouseX = 0, mouseY = 0;
@@ -47,70 +246,81 @@
     var windowHalfY = window.innerHeight / 2;
     init();
     animate();
-    function init() {
-    container = document.createElement( 'div' );
-    document.body.appendChild( container );
-    camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-    camera.position.z = 250;
-    // scene
-    scene = new THREE.Scene();
-    var ambientLight = new THREE.AmbientLight( 0xcccccc, 0.4 );
-    scene.add( ambientLight );
-    var pointLight = new THREE.PointLight( 0xffffff, 0.8 );
-    camera.add( pointLight );
-    scene.add( camera );
-    // model
-    var onProgress = function ( xhr ) {
-    if ( xhr.lengthComputable ) {
-    var percentComplete = xhr.loaded / xhr.total * 100;
-    console.log( Math.round( percentComplete, 2 ) + '% downloaded' );
-    }
-    };
-    var onError = function ( xhr ) { };
-    THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader() );
-    new THREE.MTLLoader()
-        .setPath( 'models/obj/male02/' )
-        .load( 'male02_dds.mtl', function ( materials ) {
-        materials.preload();
-        new THREE.OBJLoader()
-            .setMaterials( materials )
-            .setPath( 'models/obj/male02/' )
-            .load( 'male02.obj', function ( object ) {
-            object.position.y = - 95;
-            scene.add( object );
-            }, onProgress, onError );
-        } );
+
+    function init()
+        {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
+        camera.position.z = 250;
+        // scene
+        scene = new THREE.Scene();
+        var ambientLight = new THREE.AmbientLight(0xcccccc, 0.4);
+        scene.add(ambientLight);
+        var pointLight = new THREE.PointLight(0xffffff, 0.8);
+        camera.add(pointLight);
+        scene.add(camera);
+        // model
+        var onProgress = function (xhr)
+            {
+            if (xhr.lengthComputable)
+                {
+                var percentComplete = xhr.loaded / xhr.total * 100;
+                console.log(Math.round(percentComplete, 2) + '% downloaded');
+                }
+            };
+        var onError = function (xhr)
+            {
+            };
+        // THREE.Loader.Handlers.add(/\.dds$/i, new THREE.DDSLoader());
+        new THREE.MTLLoader().setPath('assets').load('head3d.obj.mtl', function (materials)
+            {
+            materials.preload();
+            new THREE.OBJLoader().setMaterials(materials).setPath('assets/').load('head3d.obj', function (object)
+                {
+                object.position.y = -95;
+                scene.add(object);
+                }, onProgress, onError);
+            });
+        //
+        renderer = new THREE.WebGLRenderer()
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+        document.addEventListener('mousemove', onDocumentMouseMove, false);
+        //
+        window.addEventListener('resize', onWindowResize, false);
+        }
+
+    function onWindowResize()
+        {
+        windowHalfX = window.innerWidth / 2;
+        windowHalfY = window.innerHeight / 2;
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+    function onDocumentMouseMove(event)
+        {
+        mouseX = (event.clientX - windowHalfX) / 2;
+        mouseY = (event.clientY - windowHalfY) / 2;
+        }
+
     //
-    renderer = new THREE.WebGLRenderer();
-    renderer.setPixelRatio( window.devicePixelRatio );
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    container.appendChild( renderer.domElement );
-    document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-    //
-    window.addEventListener( 'resize', onWindowResize, false );
-    }
-    function onWindowResize() {
-    windowHalfX = window.innerWidth / 2;
-    windowHalfY = window.innerHeight / 2;
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    }
-    function onDocumentMouseMove( event ) {
-    mouseX = ( event.clientX - windowHalfX ) / 2;
-    mouseY = ( event.clientY - windowHalfY ) / 2;
-    }
-    //
-    function animate() {
-    requestAnimationFrame( animate );
-    render();
-    }
-    function render() {
-    camera.position.x += ( mouseX - camera.position.x ) * .05;
-    camera.position.y += ( - mouseY - camera.position.y ) * .05;
-    camera.lookAt( scene.position );
-    renderer.render( scene, camera );
-    }
+    function animate()
+        {
+        requestAnimationFrame(animate);
+        render();
+        }
+
+    function render()
+        {
+        camera.position.x += (mouseX - camera.position.x) * .05;
+        camera.position.y += (-mouseY - camera.position.y) * .05;
+        camera.lookAt(scene.position);
+        renderer.render(scene, camera);
+        }
 </script>
 
 </body>
