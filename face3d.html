@@ -4,6 +4,13 @@
     <title>F3D Task: head3d OBJ image rendering</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <!-- Load Material UI  -->
+    <script src="https://unpkg.com/@material-ui/core/umd/material-ui.production.min.js" crossorigin="anonymous"></script>
+    <!-- Load Roboto fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+    <!-- Load font icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
     <style>
         body {
             font-family: Monospace;
@@ -69,13 +76,15 @@
         #panel {
             position: fixed;
             left: 0px;
-            width: 310px;
-            height: 100%;
+            width: 610px;
+            height: 610px;
             overflow: auto;
             background: #fafafa;
         }
         #panel #content {
             padding: 0px 20px 20px 20px;
+            width: 400px;
+            height: 300px;
         }
         #panel #content .link {
             color: #2194CE;
@@ -216,28 +225,33 @@
         }
 
     </style>
+
 </head>
 
 <body>
-<div id="panel">
-    <h1><a href="http://threejs.org">F3D head3d</a></h1>
-    <div id="content"></div>
-</div>
-<iframe id="viewer" name="viewer" allowfullscreen allowvr onmousewheel=""></iframe>
-
 <script type="text/javascript" src="js/three.min.js"></script>
-
 <script type="text/javascript" src="js/DDSLoader.js"></script>
 <script type="text/javascript" src="js/MTLLoader.js"></script>
 <script type="text/javascript" src="js/OBJLoader.js"></script>
-
 <script type="text/javascript" src="js/Detector.js"></script>
 <script type="text/javascript" src="js/stats.min.js"></script>
+
+<div id="panel">
+    <h1>F3D head3d</h1>
+    <div id="content" style="{width: 200px; height: 200px}"></div>
+    <div id="progress" style="background-color:lightblue">
+        <h3>Progress...</h3>
+        <p id="progress_text"></p>
+    </div>
+</div>
+
 
 <script type="text/javascript">
     var panel = document.getElementById('panel');
     var content = document.getElementById('content');
     var viewer = document.getElementById('viewer');
+    var progress_text = document.getElementById('progress_text')
+    var progress = document.getElementById('progress')
 
     var container, stats;
     var camera, scene, renderer;
@@ -249,8 +263,8 @@
 
     function init()
         {
-        container = document.createElement('div');
-        document.body.appendChild(container);
+        container = content;
+        //document.body.appendChild(container);
         camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
         camera.position.z = 250;
         // scene
@@ -266,14 +280,27 @@
             if (xhr.lengthComputable)
                 {
                 var percentComplete = xhr.loaded / xhr.total * 100;
-                console.log(Math.round(percentComplete, 2) + '% downloaded');
+                var roundedPcnt = Math.round(percentComplete, 2);
+                console.log(roundedPcnt + '% downloaded');
+                progress_text.innerText = roundedPcnt.toString()+' %';
+                progress.hidden = ((roundedPcnt < 1) || (roundedPcnt > 99))
                 }
             };
         var onError = function (xhr)
             {
+            console.log('Loader error: ',xhr)
             };
+
+        new THREE.OBJLoader().setPath('assets/').load('head3d.obj', function (object)
+            {
+            object.position.y = -95;
+            scene.add(object);
+            }, onProgress, onError);
+
         // THREE.Loader.Handlers.add(/\.dds$/i, new THREE.DDSLoader());
-        new THREE.MTLLoader().setPath('assets').load('head3d.obj.mtl', function (materials)
+
+/*
+        new THREE.MTLLoader().setPath('assets/').load('head3d.obj.mtl', function (materials)
             {
             materials.preload();
             new THREE.OBJLoader().setMaterials(materials).setPath('assets/').load('head3d.obj', function (object)
@@ -282,10 +309,13 @@
                 scene.add(object);
                 }, onProgress, onError);
             });
+*/
+
         //
         renderer = new THREE.WebGLRenderer()
         renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(400, 300);
+//        renderer.setSize(window.innerWidth, window.innerHeight);
         container.appendChild(renderer.domElement);
         document.addEventListener('mousemove', onDocumentMouseMove, false);
         //
