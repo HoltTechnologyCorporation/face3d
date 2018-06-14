@@ -18,4 +18,14 @@ measurement result on the page, whichever way you see fit?"
 ## Build Setup
 
 No build required. The code simply needs uploading to a suitable directory on a web-server.
+
+## Deployment
+The code has been deployed on Ian Gillingham's own web server:
+
+http://f3d.iangillingham.net/head.html
+
+
+## Caveats
+This has been an interesting exercise. Given the very short timescale available, 
+the code had to be rapidly developed and is not of optimal design, simply a proof of concept.
  
